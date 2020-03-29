@@ -54,11 +54,6 @@ async def on_ready():
     6:bot.gold_emoji}
 
 @bot.command()
-async def add(ctx, left: int, right: int):
-    """Adds two numbers together."""
-    await ctx.send(left + right)
-
-@bot.command()
 async def roll(ctx, dice: str):
     """Rolls a dice in NdN format."""
     try:
@@ -70,14 +65,29 @@ async def roll(ctx, dice: str):
     result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
     await ctx.send(result)
 
-@bot.command()
+@bot.command(description="Rolls a mana dice using custom emojis as display")
 async def mana(ctx, count: int):
     """Rolls a mana dice."""
-    # result = random.randint(1,6)
     # die_embed = discord.Embed().set_thumbnail(url=number_url_map[result])
     # await ctx.send(embed=die_embed)
     result = ', '.join(str(bot.die_emoji_map[random.randint(1, 6)]) for r in range(count))
     await ctx.send(result)
+
+@bot.command(description="Picks n options from list.  Returns selected and remaining options")
+async def pick(ctx, pick: int, *args):
+    """Pick X from options"""
+    options = list(args)
+    selected = list()
+    if pick > len(options):
+        await ctx.send("Not enough options provided.")
+        return
+    while pick > 0 and len(options) > 0:
+        selection = random.choice(options)
+        selected.append(selection)
+        options.remove(selection)
+        pick = pick - 1
+    reply = "remaining: {0}\nselected : {1}\n".format(" ".join(options)," ".join(selected))
+    await ctx.send(reply)
 
 @bot.command(description='For when you wanna settle the score some other way')
 async def choose(ctx, *choices: str):
