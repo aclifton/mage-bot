@@ -11,13 +11,7 @@ white_die_url = "https://cf.geekdo-images.com/original/img/V4r-VJ947Mgt3BMNU_e8G
 black_die_url = "https://cf.geekdo-images.com/original/img/n426rPLtbuAQQx2QxAoCkmkq6Uc=/0x0/pic1554405.jpg"
 gold_die_url = "https://cf.geekdo-images.com/original/img/LE_fBgkU_nU5GfmHpLpYONvc78A=/0x0/pic1554403.jpg"
 
-number_url_map = {\
-    1:red_die_url,\
-    2:green_die_url,\
-    3:blue_die_url,\
-    4:white_die_url,\
-    5:black_die_url,\
-    6:gold_die_url}
+
 
 description = '''An example bot to showcase the discord.ext.commands extension
 module.
@@ -44,14 +38,6 @@ async def on_ready():
             bot.black_emoji = e
         if e.name == "gold_die":
             bot.gold_emoji = e
-    
-    bot.die_emoji_map = {\
-    1:bot.red_emoji,\
-    2:bot.green_emoji,\
-    3:bot.blue_emoji,\
-    4:bot.white_emoji,\
-    5:bot.black_emoji,\
-    6:bot.gold_emoji}
 
 @bot.command()
 async def roll(ctx, dice: str):
@@ -70,7 +56,8 @@ async def mana(ctx, count: int):
     """Rolls a mana dice."""
     # die_embed = discord.Embed().set_thumbnail(url=number_url_map[result])
     # await ctx.send(embed=die_embed)
-    result = ', '.join(str(bot.die_emoji_map[random.randint(1, 6)]) for r in range(count))
+    faces = [bot.red_emoji, bot.blue_emoji, bot.green_emoji, bot.white_emoji, bot.black_emoji, bot.gold_emoji]
+    result = str(ctx.message.author.mention)+ " rolled " + ', '.join(str(random.choice(faces)) for r in range(count))
     await ctx.send(result)
 
 @bot.command(description="Picks n options from list.  Returns selected and remaining options")
@@ -93,6 +80,11 @@ async def pick(ctx, pick: int, *args):
 async def choose(ctx, *choices: str):
     """Chooses between multiple choices."""
     await ctx.send(random.choice(choices))
+
+@bot.command()
+async def hand(ctx, command: str, *args):
+    pass
+    # await ctx.message.author.send(message)
 
 if len(sys.argv) != 2:
     print("usage:\n\t{0} {{discord_key}}".format(sys.argv[0]))
