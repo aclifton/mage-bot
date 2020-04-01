@@ -4,15 +4,6 @@ import os
 import random
 import sys
 
-red_die_url = "https://cf.geekdo-images.com/original/img/8vtZaagQ2VJFtSqcoEBLXqNSK38=/0x0/pic1554401.jpg"
-green_die_url = "https://cf.geekdo-images.com/original/img/707hBm7V_9kfCRLTYilZhrL1OgM=/0x0/pic1554402.jpg"
-blue_die_url = "https://cf.geekdo-images.com/original/img/W4gA5CFcVgcnIIZ46wnFMj0W9gw=/0x0/pic1554404.jpg"
-white_die_url = "https://cf.geekdo-images.com/original/img/V4r-VJ947Mgt3BMNU_e8GT8uhPM=/0x0/pic1554399.jpg"
-black_die_url = "https://cf.geekdo-images.com/original/img/n426rPLtbuAQQx2QxAoCkmkq6Uc=/0x0/pic1554405.jpg"
-gold_die_url = "https://cf.geekdo-images.com/original/img/LE_fBgkU_nU5GfmHpLpYONvc78A=/0x0/pic1554403.jpg"
-
-
-
 description = '''An example bot to showcase the discord.ext.commands extension
 module.
 
@@ -25,20 +16,10 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
+    bot.mana_dice = []
     for e in bot.emojis:
-        if e.name == "red_die":
-            bot.red_emoji = e
-        if e.name == "green_die":
-            bot.green_emoji = e
-        if e.name == "blue_die":
-            bot.blue_emoji = e
-        if e.name == "white_die":
-            bot.white_emoji = e
-        if e.name == "black_die":
-            bot.black_emoji = e
-        if e.name == "gold_die":
-            bot.gold_emoji = e
-
+        if e.name.startswith('die_'):
+            bot.mana_dice.append(e)
 @bot.command()
 async def roll(ctx, dice: str):
     """Rolls a dice in NdN format."""
@@ -52,12 +33,12 @@ async def roll(ctx, dice: str):
     await ctx.send(result)
 
 @bot.command(description="Rolls a mana dice using custom emojis as display")
-async def mana(ctx, count: int):
+async def mana(ctx, count: int = None):
     """Rolls a mana dice."""
-    # die_embed = discord.Embed().set_thumbnail(url=number_url_map[result])
-    # await ctx.send(embed=die_embed)
-    faces = [bot.red_emoji, bot.blue_emoji, bot.green_emoji, bot.white_emoji, bot.black_emoji, bot.gold_emoji]
-    result = str(ctx.message.author.mention)+ " rolled " + ', '.join(str(random.choice(faces)) for r in range(count))
+    if not count:
+        count = 1
+    result = ' '.join(str(random.choice(bot.mana_dice)) for r in range(count))
+    result = str(ctx.message.author.mention)+ " rolled " + ' '.join(str(random.choice(bot.mana_dice)) for r in range(count))
     await ctx.send(result)
 
 @bot.command(description="Picks n options from list.  Returns selected and remaining options")
