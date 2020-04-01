@@ -20,7 +20,8 @@ async def on_ready():
     for e in bot.emojis:
         if e.name.startswith('die_'):
             bot.mana_dice.append(e)
-@bot.command()
+            
+@bot.command(enabled=False)
 async def roll(ctx, dice: str):
     """Rolls a dice in NdN format."""
     try:
