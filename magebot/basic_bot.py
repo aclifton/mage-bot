@@ -20,12 +20,6 @@ async def on_ready():
     for e in bot.emojis:
         if e.name.startswith('die_'):
             bot.mana_dice.append(e)
-
-@bot.command()
-async def add(ctx, left: int, right: int):
-    """Adds two numbers together."""
-    await ctx.send(left + right)
-
 @bot.command()
 async def roll(ctx, dice: str):
     """Rolls a dice in NdN format."""
@@ -38,18 +32,40 @@ async def roll(ctx, dice: str):
     result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
     await ctx.send(result)
 
-@bot.command()
+@bot.command(description="Rolls a mana dice using custom emojis as display")
 async def mana(ctx, count: int = None):
     """Rolls a mana dice."""
     if not count:
         count = 1
     result = ' '.join(str(random.choice(bot.mana_dice)) for r in range(count))
+    result = str(ctx.message.author.mention)+ " rolled " + ' '.join(str(random.choice(bot.mana_dice)) for r in range(count))
     await ctx.send(result)
+
+@bot.command(description="Picks n options from list.  Returns selected and remaining options")
+async def pick(ctx, pick: int, *args):
+    """Pick X from options"""
+    options = list(args)
+    selected = list()
+    if pick > len(options):
+        await ctx.send("Not enough options provided.")
+        return
+    while pick > 0 and len(options) > 0:
+        selection = random.choice(options)
+        selected.append(selection)
+        options.remove(selection)
+        pick = pick - 1
+    reply = "remaining: {0}\nselected : {1}\n".format(" ".join(options)," ".join(selected))
+    await ctx.send(reply)
 
 @bot.command(description='For when you wanna settle the score some other way')
 async def choose(ctx, *choices: str):
     """Chooses between multiple choices."""
     await ctx.send(random.choice(choices))
+
+@bot.command()
+async def hand(ctx, command: str, *args):
+    pass
+    # await ctx.message.author.send(message)
 
 if len(sys.argv) != 2:
     print("usage:\n\t{0} {{discord_key}}".format(sys.argv[0]))
