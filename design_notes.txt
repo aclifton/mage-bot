@@ -1,0 +1,139 @@
+General considerations
+
+Mage Knight is a complex game. Players will make mistakes and the bot will have bugs. The game state needs to be editable and anything can be reverted (either through a cancel command or by editing the changes back).
+To simplify reverts, anything random is rolled for when it is revealed. We don't build decks or stacks. This is especially important for tiles. If a player mistakenly explore a tile and the exploration is then reverted, we don't want players to know that this specific tile is in the stack. Therefore, there is no stack, and each explore can possibly reveal any remaining tile.
+Decks will therefore have 3 sections: top, bottom and middle. Some cards are put on the top or bottom of a deck, so we will need to track this with orderer lists. The rest of the deck has no specific order until cards are drawn.
+
+Game Workflow
+
+Here is the planned workflow of a game with the various bot commands and their description. This will serve as the basis to write the documentation.
+
+Any command can be typed either privately to the bot or on the game channel. If the command changes the game state, the bot will write confirmation of the command on the channel along with the result of the command.
+If the command only queries the game state, the bot will reply on the same channel. With the exception of commands to query private information which will always be answered privately (to prevent players accidentally revealing their hand on the game channel).
+
+/new_game (or /ng or /init?)
+Create a new game and associate it with the current channel
+
+/set option=value
+Configure the game. Examples of options:
+	ll=yes/no (Lost Legion expansion)
+	sot=yes/no (Shades of Tezla expansion)
+	mode=competitive/coop
+	tile_rotate=yes/no
+	volare_as_city=yes/no (for conquest games with LL)
+	pvp=yes/no
+	
+Most other game options can be easily handled by the players and don't require explicit setting in the bot. We should implement options only if it has a significant impact on the bot's behavior.
+
+/scenario <scenario_name>
+Scenarios can be configured in an external json file which describes map shape, how many tiles of each type for each player count, etc... Some scenarios will also requires hardcoding specifics.
+
+/join <knight_name>
+A player join a game. An optional knight name can be given.
+
+/knights <n>
+Gives a random set of knights for the players to choose or auction from. If n is not given, will give as many knights as the current number of players.
+
+/knight <knight_name>
+Set or change the knight of a player
+
+/turn_order
+Initialize a random turn order of the currently joined players for either choosing knights or auctioning.
+
+/start
+Ends the game setup and start the game.
+Fail if a scenario hasn't been chosen or no player jas joined the game.
+Print a summary of the game settings and prompt for confirmation.
+After the player has confirmed, will roll for initial tiles, rampaging enemies, offer (AA, spell, units) and source and print all this information.
+If a turn order has been set during setup, the bot will prompt the first player to choose his tactic. Probably don't enforce turn order for tactic selection.
+
+/tactic n
+Player announce which tactic they choose for the round.
+
+Once all players have chosen their tactic, the bot announce which player has to take their turn
+
+/play <card_name>,<card_name>,<mana_color>
+/use <skill_name>
+/spend <unit_name>,<mana_color>
+The player whose turn is ongoing announces which cards they're playing, which skill they are using which units they are spending and which mana dice they are using
+Those commands can be used repeatedly. Players will alternate between using those commands and entering textual descriptions of their turn (or uploading Vassal log file)
+
+/explore
+Reveal a new tile. It will be up to the players to announce where they are exploring before running the command and then building the map. It's technically feasible for the bot to build and show the map, but this is a long term goal.
+
+/monster <n> <token_color>
+draw 1 or several monster tokens for the player to fight.
+
+/discard <monster_name>
+Discard the monster token. The bot needs to know which tokens are on the map and which ones in the discard in case we run out of monster and need to shuffle the discard. We could also add a /kill command which discards the monster and gives the fame to the player, but that might be superfluous.
+
+/recruit <unit_name> <mana_color>
+Recruit a unit from the offer. Mana color must be specified for Magic Familiars.
+
+/disband <unit_name>
+Disband a unit (paralyze attack, unfed familiars). Also needs to be done before recruiting a new unit when player has no free command token.
+
+/wound <n>
+/poison <n>
+/wound <unit_name>
+draw wounds or poisonous wounds or wound unit
+
+/fame +n
+/rep +/-n
+/crystal +/-n color
+Adjust player stats. Those could take an optional player name so that players can fix each others mistakes.
+
+/eot
+Starts the end of turn sequence. Fails if the user hasn't played nor discarded any card.
+Any mana dice used is rerolled and the bot announce the source. The next player may start his turn if he wishes too.
+
+/reward artifact
+/reward <spell_or_AA_name>
+Player announce the rewards they are taking. /mana can be used to roll for dungeon rewards or random crystals (followed by /crystal). /recruit can also be used for Ruins with unit reward.
+
+/levelup
+Bot rolls for 2 skills and announce them. The bot also announces the content of the common offer and the available AA.
+Stats levelup (command token and increased hand/armor) are handled automatically, this command is unnecessary.
+
+/pick <skill_name>
+/pick <AA>
+Player announce which skill (eventually from the common offer) they take and which AA (/reward could also be used here)
+
+/discard <card_name>
+Player can discard card from their hand. This can also be used during the turn btw.
+
+/draw
+Announce the end of the end of turn phase. If there is a pending level up that the player didn't trigger, it will be now triggered automatically. Then player draws up to hand limit.
+
+/draw n
+Player draws additional cards (keep, plundering, motivation, card effects,...)
+
+/eor
+Instead of taking their turn, the player calls the end of the round
+
+/cancel
+Cancel the last command
+
+/revert_turn <n>
+Revert the game state to the previous turn (or n turns before)
+
+Game information
+
+Those commands are not orders but only for querying the game state
+
+/show hand
+show cards the player is currently holding
+/show map
+print tiles in play with their orientation, monsters and ruins on on map
+
+/show offer
+show current offer (AA, spell, units)
+
+/show board <knight>
+show everything on the player board (units and their state, crystals, skills) or the board of another knight (player name can work too)
+
+/show discard <knight>
+show the content of the player discard (or another player)
+
+/show deck <knight>
+show cards remaining in the player's deck. If another knight's name is given, will give the content of deck+hand.
