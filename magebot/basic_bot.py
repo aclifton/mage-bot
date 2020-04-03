@@ -3,6 +3,11 @@ from discord.ext import commands
 import os
 import random
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 description = '''An example bot to showcase the discord.ext.commands extension
 module.
@@ -68,7 +73,4 @@ async def hand(ctx, command: str, *args):
     pass
     # await ctx.message.author.send(message)
 
-if len(sys.argv) != 2:
-    print("usage:\n\t{0} {{discord_key}}".format(sys.argv[0]))
-else:
-    bot.run(sys.argv[1])
+bot.run(DISCORD_TOKEN)
