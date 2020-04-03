@@ -12,12 +12,21 @@ class HandManagerTests(unittest.TestCase):
     def test_add_card(self):
         self.manager.register_card(1)
         self.manager.add_to_top_deck(1)
+        self.assertEqual(len(self.manager.get_deck()), 1)
 
     def test_draw_card(self):
         self.manager.register_card(1)
         self.manager.add_to_top_deck(1)
         card = self.manager.draw()
         self.assertEqual(card, 1)
+
+    def test_draw_card_from_empty_deck(self):
+        self.manager.register_card(1)
+        self.manager.add_to_top_deck(1)
+        card = self.manager.draw()
+        self.assertEqual(card, 1)
+        with self.assertRaises(NotInDeckError):
+            self.manager.draw()
 
     def test_discard_card(self):
         self.manager.register_card(1)

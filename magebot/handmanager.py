@@ -18,6 +18,9 @@ class NotValidCardError(HandManagerError):
 
 class HandManager:
     def __init__(self):
+        self.reset()
+        
+    def reset(self):
         self._cards = list()
         self._deck = list()
         self._discard = list()
@@ -47,6 +50,8 @@ class HandManager:
         random.shuffle(self._deck)
 
     def draw(self):
+        if len(self._deck) == 0:
+            raise NotInDeckError("Deck empty")
         card = self._deck.pop()
         self._hand.append(card)
         return card
@@ -67,3 +72,12 @@ class HandManager:
     def add_discard_to_deck(self):
         self._deck.extend(self._discard)
         self._discard = list()
+
+    def get_hand(self):
+        return self._hand.copy()
+
+    def get_deck(self):
+        return self._deck.copy()
+
+    def get_discard(self):
+        return self._discard.copy()

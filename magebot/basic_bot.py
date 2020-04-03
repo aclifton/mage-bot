@@ -5,6 +5,8 @@ import random
 import sys
 from dotenv import load_dotenv
 
+import handmanager
+
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -21,6 +23,7 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
+    bot.games = dict()
     bot.mana_dice = []
     for e in bot.emojis:
         if e.name.startswith('die_'):
@@ -68,9 +71,66 @@ async def choose(ctx, *choices: str):
     """Chooses between multiple choices."""
     await ctx.send(random.choice(choices))
 
+
+def get_hand_manager_for_player(games, channel,author):
+    if not channel in bot.games:
+        game = dict()
+        bot.games[channel] = game
+    game = bot.games[channel]
+    if not author in game:
+        game[author] = handmanager.HandManager()
+    hand_manager = game[author]
+    return hand_manager
+
 @bot.command()
-async def hand(ctx, command: str, *args):
-    pass
-    # await ctx.message.author.send(message)
+async def createdeck(ctx, *cards):
+    channel = ctx.message.channel
+    author = ctx.message.author
+    hand_manager = get_hand_manager_for_player(bot.games, channel, author)
+    hand_manager.reset()
+    for card in cards:
+        hand_manager.register_card(card)
+        hand_manager.add_to_top_deck(card)
+    await ctx.send("Creating deck with {0}".format(", ".join(cards)))
+
+@bot.command()
+async def shuffle(ctx, *args):
+    channel = ctx.message.channel
+    author = ctx.message.author
+    hand_manager = get_hand_manager_for_player(bot.games, channel, author)
+    hand_manager.shuffle()
+
+@bot.command()
+async def draw(ctx, amount: int = None):
+    amount = 1 if amount is None else amount
+    channel = ctx.message.channel
+    author = ctx.message.author
+    hand_manager = get_hand_manager_for_player(bot.games, channel, author)
+    deck_size = len(hand_manager.get_deck())
+    if deck_size < amount:
+        await ctx.send("Deck only has {0}.".format(deck_size))
+        amount = deck_size
+    
+    for x in range(amount):
+        hand_manager.draw()
+    await ctx.send("Drawing {0} cards to {1}'s hand.".format(amount,author))
+
+@bot.command()
+async def discard(ctx, *cards):
+    channel = ctx.message.channel
+    author = ctx.message.author
+    hand_manager = get_hand_manager_for_player(bot.games, channel, author)
+    for card in cards:
+        try:
+            hand_manager.discard_card(card)
+        except handmanager.NotInHandError as e:
+            await author.send("Error: {0} is not in your hand".format(card))
+
+@bot.command()
+async def hand(ctx, *args):
+    channel = ctx.message.channel
+    author = ctx.message.author
+    hand_manager = get_hand_manager_for_player(bot.games, channel, author)
+    await ctx.send("Hand for channel {0}: {1}".format(str(channel),', '.join(hand_manager.get_hand())))
 
 bot.run(DISCORD_TOKEN)
