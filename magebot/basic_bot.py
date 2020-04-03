@@ -73,10 +73,10 @@ async def choose(ctx, *choices: str):
 
 
 def get_hand_manager_for_player(games, channel,author):
-    if not channel in bot.games:
+    if not channel in games:
         game = dict()
-        bot.games[channel] = game
-    game = bot.games[channel]
+        games[channel] = game
+    game = games[channel]
     if not author in game:
         game[author] = handmanager.HandManager()
     hand_manager = game[author]
@@ -124,13 +124,13 @@ async def discard(ctx, *cards):
         try:
             hand_manager.discard_card(card)
         except handmanager.NotInHandError as e:
-            await author.send("Error: {0} is not in your hand".format(card))
+            await ctx.send("Error: {0} is not in your hand".format(card))
 
 @bot.command()
 async def hand(ctx, *args):
     channel = ctx.message.channel
     author = ctx.message.author
     hand_manager = get_hand_manager_for_player(bot.games, channel, author)
-    await ctx.send("Hand for channel {0}: {1}".format(str(channel),', '.join(hand_manager.get_hand())))
+    await author.send("Hand for channel {0}: {1}".format(str(channel),', '.join(hand_manager.get_hand())))
 
 bot.run(DISCORD_TOKEN)
